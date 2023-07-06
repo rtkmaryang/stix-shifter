@@ -5,7 +5,9 @@ from stix_shifter_utils.utils import logger
 error_mapping = {
     1001: ErrorCode.TRANSMISSION_AUTH_CREDENTIALS,
     1002: ErrorCode.TRANSMISSION_INVALID_PARAMETER,
-    1003: ErrorCode.TRANSMISSION_REMOTE_SYSTEM_IS_UNAVAILABLE
+    1003: ErrorCode.TRANSMISSION_REMOTE_SYSTEM_IS_UNAVAILABLE,
+    1004: ErrorCode.TRANSMISSION_CONNECT,
+    1005: ErrorCode.TRANSMISSION_QUERY_PARSING_ERROR
 }
 
 
@@ -15,7 +17,7 @@ class ErrorMapper:
     logger = logger.set_logger(__name__)
 
     @staticmethod
-    def set_error_code(json_data, return_obj):
+    def set_error_code(json_data, return_obj, connector=None):
         code = None
         try:
             code = int(json_data['code'])
@@ -30,4 +32,4 @@ class ErrorMapper:
         if error_code == ErrorMapper.DEFAULT_ERROR:
             ErrorMapper.logger.error("failed to map: %s", str(json_data))
 
-        ErrorMapperBase.set_error_code(return_obj, error_code)
+        ErrorMapperBase.set_error_code(return_obj, error_code, connector=connector)

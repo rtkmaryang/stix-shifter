@@ -24,7 +24,8 @@ The following example JSON contains the appropriate parameters that each module 
 {
     "connection": {
         "type": {
-            "default": "QRadar"
+            "default": "QRadar",
+            "group": "qradar"
         },
         "host": {
             "type": "text",
@@ -52,10 +53,6 @@ The following example JSON contains the appropriate parameters that each module 
             "type": "password",
             "optional": true
         },
-        "sni": {
-            "type": "text",
-            "optional": true
-        },
         "selfSignedCert": {
             "type": "password",
             "optional": true
@@ -78,6 +75,7 @@ Each parameter in both the connection and configuration object can also have few
         - text
         - number
         - password
+        - boolean
 2. default
     - The default value for the parameter
 3. min
@@ -125,11 +123,11 @@ Below example json is the language translation file of the above QRadar config j
         "host": {
             "label": "Management IP address or Hostname",
             "placeholder": "192.168.1.10",
-            "description": "Specify the IP address or  hostname of the data source so that IBM Cloud Pak for Security can communicate with it"
+            "description": "Specify the IP address or hostname of the data source"
         },
         "port": {
             "label": "Host Port",
-            "description": "Set the port number that is associated with the Host name or IP"
+            "description": "Set the port number that is associated with the host name or IP address"
         },
         "help": {
             "label": "Need additional help?",
@@ -146,10 +144,6 @@ Below example json is the language translation file of the above QRadar config j
         "cert": {
             "label": "IBM QRadar Certificate",
             "description": "Use self-signed SSL certificate for QRadar V7.3.1 and CA content(root and intermediate) for QRadar V7.3.2"
-        },
-        "sni": {
-            "label": "Server Name Indicator",
-            "description": "The Server Name Indicator (SNI) enables a separate hostname to be provided for SSL authentication"
         }
     },
     "configuration": {

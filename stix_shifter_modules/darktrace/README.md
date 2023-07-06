@@ -1,4 +1,8 @@
-# Darktrace Connector
+# Darktrace
+
+## Supported STIX Mappings
+
+See the [table of mappings](darktrace_supported_stix.md) for the STIX objects and operators supported by this connector.
 
 **Table of Contents**
 
@@ -864,3 +868,5 @@ ping
 
 ### Observations
 -  Darktrace does not support >= and <=, so the same is achieved by < and > operators by increasing and decreasing the corresponding values.
+-  Query will return those records in the specified timeframe which satisfy the applied search filters. If there are no records in the given timeframe, search filter won't be applied and "Invalid parameter" error will be returned.
+-  It is observed that Darktrace API returns 'timed out' error if translated query string length is more than MAX_QUERY_LENGTH. To avoid this error, query is split at 'OR' conditions and multiple requests are made to darktrace to get the result. However, the part of query joined by 'AND' operator won't be split and 'timed out' error is returned if the length of that part is beyond MAX_QUERY_LENGTH.

@@ -1,13 +1,14 @@
+from os import path
 import re
 import uuid
 import json
 
 from stix_shifter_utils.utils.helpers import dict_merge
-from stix_shifter_utils.stix_translation.src.json_to_stix import observable
+from stix_shifter_utils.stix_translation.src.json_to_stix import observable, id_contributing_properties
 from stix2validator import validate_instance, print_results, ValidationOptions
 from datetime import datetime
 from stix_shifter_utils.utils import logger
-from stix_shifter_utils.utils.helpers import StixObjectId, StixObjectIdEncoder
+from stix_shifter_utils.utils.helpers import StixObjectId
 
 # "ID Contributing Properties" taken from https://docs.oasis-open.org/cti/stix/v2.1/csprd01/stix-v2.1-csprd01.html#_Toc16070594
 UUID5_NAMESPACE = "00abedb4-aa42-466c-9c01-fed23315a9b7"
@@ -18,33 +19,41 @@ LAST_OBSERVED_KEY = 'last_observed'
 
 # convert JSON data to STIX object using map_data and transformers
 def convert_to_stix(data_source, map_data, data, transformers, options, callback=None):
+    try:
+        ds2stix = DataSourceObjToStixObj(data_source, map_data, transformers, options, callback)
 
-    ds2stix = DataSourceObjToStixObj(data_source, map_data, transformers, options, callback)
+        # map data list to list of transformed objects
+        observation = ds2stix.transform
+        results = list(map(observation, data))
 
-    # map data list to list of transformed objects
-    observation = ds2stix.transform
-    results = list(map(observation, data))
+        for stix_object in results:
+            if ds2stix.spec_version == "2.1":
+                del stix_object["objects"]
+            ds2stix.bundle["objects"].append(stix_object)
 
-    for stix_object in results:
-        if ds2stix.spec_version == "2.1":
-            del stix_object["objects"]
-        ds2stix.bundle["objects"].append(stix_object)
+        for _, value in ds2stix.unique_cybox_objects.items():
+            ds2stix.bundle["objects"].append(value)
 
-    for _, value in ds2stix.unique_cybox_objects.items():
-        ds2stix.bundle["objects"].append(value)
+        if options.get('stix_validator'):
+            if ds2stix.spec_version == "2.1":
+                # Serialize and Deserialize bundle to covert StixObjectIds to strings
+                bundle_obj = json.dumps(ds2stix.bundle, sort_keys=False)
+                bundle_obj = json.loads(bundle_obj)
+            else:
+                bundle_obj = ds2stix.bundle
+            validated_result = validate_instance(bundle_obj, ValidationOptions(version=ds2stix.spec_version))
+            print_results(validated_result)
 
-    if options.get('stix_validator'):
-        if ds2stix.spec_version == "2.1":
-            # Serialize and Deserialize bundle to covert StixObjectIds to strings
-            bundle_obj = json.dumps(ds2stix.bundle, sort_keys=False, cls=StixObjectIdEncoder)
-            bundle_obj = json.loads(bundle_obj)
-        else:
-            bundle_obj = ds2stix.bundle
-        validated_result = validate_instance(bundle_obj, ValidationOptions(version=ds2stix.spec_version))
-        print_results(validated_result)
+        return ds2stix.bundle
 
-    return ds2stix.bundle
-
+    except Exception as e:
+        try:
+            # try to print the error line
+            logger_log = logger.set_logger(__name__)
+            logger_log.error(logger.last_tb_to_string(e))
+        except:
+            pass
+        raise e
 
 class DataSourceObjToStixObj:
     logger = logger.set_logger(__name__)
@@ -57,7 +66,6 @@ class DataSourceObjToStixObj:
         self.callback = callback
 
         # parse through options
-        self.cybox_default = options.get('cybox_default', True)
 
         self.properties = observable.properties
 
@@ -72,8 +80,7 @@ class DataSourceObjToStixObj:
 
         if options.get("stix_2.1"):
             self.spec_version = "2.1"
-            with open("stix_shifter_utils/stix_translation/src/json_to_stix/id_contributing_properties.json", 'r') as f:
-                self.contributing_properties_definitions =  json.load(f)
+            self.contributing_properties_definitions = id_contributing_properties.properties
         else:
             self.spec_version = "2.0"
             self.bundle["spec_version"] = "2.0"
@@ -148,6 +155,9 @@ class DataSourceObjToStixObj:
                         # if the property has unwrap true and is not a list, convert to list
                         if unwrap is True and not isinstance(return_value, list):
                             return_value = [return_value]
+
+                    if not return_value:
+                        return None
                 else:
                     if unwrap is False and observable_key and not self._valid_stix_value(observable_key, value):
                         return None
@@ -197,9 +207,13 @@ class DataSourceObjToStixObj:
         """
         Add observable object property and its STIX valid value to the cached `objects` dictionary
         """
+        named_group =  isinstance(group, str) and group.lower() != "true"
         parent_key_ind_str = str(parent_key_ind)
         if not parent_key_ind_str in objects:
             if cybox:
+                # Grouped properties go in a list
+                if named_group:
+                    value = [value]
                 objects[parent_key_ind_str] = {
                     'type': type_name,
                     property_key: value
@@ -214,6 +228,9 @@ class DataSourceObjToStixObj:
         else:
             if not property_key in objects[parent_key_ind_str]:
                 objects[parent_key_ind_str][property_key] = value
+            # Add grouped value in existing list element
+            elif isinstance(value, dict) and named_group and isinstance(objects[parent_key_ind_str][property_key], list):
+                objects[parent_key_ind_str][property_key][0] = dict_merge(objects[parent_key_ind_str][property_key][0], value)
             elif isinstance(value, dict):
                 objects[parent_key_ind_str][property_key] = dict_merge(objects[parent_key_ind_str][property_key], value)
             elif isinstance(objects[parent_key_ind_str][property_key], list) and group:
@@ -239,7 +256,15 @@ class DataSourceObjToStixObj:
                             # data variable is the final value, process in bulk
                             self._handle_value(data, parent_data, ds_sub_key, to_stix_config_prop, objects, object_tag_ref_map, object_key_ind)
                             break
-
+                    # group the references of list of dictionary field
+                    if isinstance(to_stix_config_prop, dict):
+                        group_refs = [key for key, value in to_stix_config_prop.items() if
+                                      isinstance(value, dict) and value.get('group_ref') and value.get(
+                                          'references')]
+                        for group_ref in group_refs:
+                            self._handle_value(data, to_stix_config_prop, ds_sub_key,
+                                               to_stix_config_prop[group_ref],
+                                               objects, object_tag_ref_map, object_key_ind)
                 elif isinstance(data, dict):
                     for k in data:
                         cust_prop = None
@@ -273,9 +298,24 @@ class DataSourceObjToStixObj:
 
                 transformer = self.transformers[prop['transformer']] if 'transformer' in prop else None
                 references = references = prop['references'] if 'references' in prop else None
+                
+                # This check avoid using duplicate reference in the multiple objects of the same type.
+                # For example: If there are multiple source ipv4-addr and network-traffic objects then 
+                # without this reference check the first source ipv4-addr object will be referenced to all network-traffic objects.
+                if object_key_ind and references:
+                    if isinstance(references, str):
+                        references = references + '_' + str(object_key_ind)
+                    elif isinstance(references, list):
+                        references = [ref + '_' + str(object_key_ind) for ref in references]
+                        
                 # unwrap array of stix values to separate stix objects
                 unwrap = True if 'unwrap' in prop and isinstance(data, list) else False
-                cybox = prop.get('cybox', self.cybox_default)
+                if "." in key:
+                    cybox = True
+                else:
+                    cybox = False
+                
+                # cybox = prop.get('cybox', self.cybox_default)
 
                 if self.callback:
                     try:
@@ -287,14 +327,17 @@ class DataSourceObjToStixObj:
 
                 config_keys = key.split('.')
                 if len(config_keys) < 2:
-                    if False is prop.get('cybox', self.cybox_default): 
+                    # if False is prop.get('cybox', self.cybox_default):
+                    if not cybox:
                         object_tag_ref_map['out_cybox'][key] = self._compose_value_object(data, [], observable_key=key, object_tag_ref_map=object_tag_ref_map, transformer=transformer, references=references, unwrap=unwrap)
                     pass
                 else:
                     type_name = config_keys[0]
                     property_key = config_keys[1]
+                    # set the object to combine properties from same SCO
                     parent_key = prop['object'] if 'object' in prop else type_name
 
+                    # set the group to combine properties in a list
                     group = prop['group'] if 'group' in prop else False
                     substitute_key = prop['ds_key'] if 'ds_key' in prop else None
 

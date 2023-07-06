@@ -1,7 +1,8 @@
 {
     "connection": {
         "type": {
-            "displayName": "Elastic Search (ECS)"
+            "displayName": "Elastic Search (ECS)",
+            "group": "elastic"
         },
         "host": {
             "type": "text",
@@ -18,10 +19,6 @@
             "default": "data-sources-elastic.html"
         },
         "indices": {
-            "type": "text",
-            "optional": true
-        },
-        "sni": {
             "type": "text",
             "optional": true
         },

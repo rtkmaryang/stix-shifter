@@ -1,12 +1,10 @@
 {
   "timestamp": [
     {
-      "key": "first_observed",
-      "cybox": false
+      "key": "first_observed"
     },
     {
-      "key": "last_observed",
-      "cybox": false
+      "key": "last_observed"
     },
     {
       "key": "x-oca-event.created",
@@ -157,14 +155,9 @@
       "object": "domain-name"
     },
     {
-      "key": "network-traffic.dst_ref",
-      "object": "network-traffic",
-      "references": "domain-name"
-    },
-    {
-      "key": "x-oca-event.network_ref",
+      "key": "x-oca-event.domain_ref",
       "object": "event",
-      "references": "network-traffic"
+      "references": "domain-name"
     }
   ],
   "sha256_ioc": [

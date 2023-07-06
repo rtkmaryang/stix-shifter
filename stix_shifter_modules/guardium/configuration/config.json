@@ -1,7 +1,8 @@
 {
     "connection": {
         "type": {
-            "displayName": "IBM® Guardium"
+            "displayName": "IBM® Guardium",
+            "group": "guardium"
         },
         "host": {
             "type": "text",
@@ -16,10 +17,6 @@
         "help": {
             "default": "data-sources-guardium.html",
             "type": "link"
-        },
-        "sni": {
-            "type": "text",
-            "optional": true
         },
         "selfSignedCert": {
             "type": "password",

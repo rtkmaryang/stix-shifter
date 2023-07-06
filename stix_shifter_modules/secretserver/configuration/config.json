@@ -1,7 +1,8 @@
 {
     "connection": {
         "type": {
-            "displayName": "IBM Security Verify Privilege Vault"
+            "displayName": "IBM Security Verify Privilege Vault",
+            "group": "secretserver"
         },
         "host": {
             "type": "text",
@@ -17,10 +18,6 @@
             "default": "https://www.ibm.com/docs/en/svp/10.5?topic=overview-secret-server",
             "type": "link"
 
-        },
-        "sni": {
-            "type": "text",
-            "optional": true
         },
         "selfSignedCert": {
             "type": "password",

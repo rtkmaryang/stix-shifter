@@ -1,7 +1,8 @@
 {
     "connection": {
         "type": {
-            "displayName": "MySQL"
+            "displayName": "MySQL",
+            "group": "mysql"
         },
         "host": {
             "type": "text",
@@ -22,10 +23,6 @@
         },
         "cert": {
             "type": "password",
-            "optional": true
-        },
-        "sni": {
-            "type": "text",
             "optional": true
         },
         "selfSignedCert": {

@@ -143,7 +143,6 @@
   "eventcount": [
     {
       "key": "number_observed",
-      "cybox": false,
       "transformer": "ToInteger"
     },
     {
@@ -160,24 +159,22 @@
   "starttime": [
     {
       "key": "first_observed",
-      "transformer": "EpochToTimestamp",
-      "cybox": false
+      "transformer": "QRadarEpochToTimestamp"
     },
     {
       "key": "x-ibm-finding.start",
-      "transformer": "EpochToTimestamp",
+      "transformer": "QRadarEpochToTimestamp",
       "object": "finding"
     }
   ],
   "endtime": [
     {
       "key": "last_observed",
-      "transformer": "EpochToTimestamp",
-      "cybox": false
+      "transformer": "QRadarEpochToTimestamp"
     },
     {
       "key": "x-ibm-finding.end",
-      "transformer": "EpochToTimestamp",
+      "transformer": "QRadarEpochToTimestamp",
       "object": "finding"
     }
   ],
@@ -460,12 +457,7 @@
     "object": "nt",
     "transformer": "ToLowercaseArray"
   },
-  "domainname": [
-    {
-      "key": "domain-name.value",
-      "object": "domain2",
-      "transformer": "ToDomainName"
-    },
+  "qradardomain": [
     {
       "key": "x-qradar.domain_name",
       "object": "x-qradar"
@@ -473,17 +465,9 @@
   ],
   "dnsdomainname": [
     {
-      "key": "url.value",
-      "object": "url"
-    },
-    {
       "key": "domain-name.value",
-      "object": "domain1",
+      "object": "domain",
       "transformer": "ToDomainName"
-    },
-    {
-      "key": "x-qradar.domain_name",
-      "object": "x-qradar"
     }
   ],
   "flowsource": [
@@ -491,8 +475,7 @@
       "key": "x-qradar.flow_source",
       "object": "x-qradar"
     }
-  ]
-  ,
+  ],
   "flowinterface": {
     "key": "x-qradar.flow_interface",
     "object": "x-qradar"
@@ -750,7 +733,7 @@
   "EventID": {
     "key": "x-oca-event.code",
     "object": "event",
-    "transformer": "ToInteger"
+    "transformer": "ToString"
   },
   "ParentProcessId": [
     {
@@ -799,34 +782,28 @@
       "references": "winregistry"
     }
   ],
-  "TargetImage": {
-    "key": "x-ibm-windows.targetimage",
-    "object": "xwin"
-  },
-  "GrantedAccess": {
-    "key": "x-ibm-windows.granted_access",
-    "object": "xwin"
-  },
-  "CallTrace": {
-    "key": "x-ibm-windows.call_trace",
-    "object": "xwin"
-  },
-  "PipeName": {
-    "key": "x-ibm-windows.pipe_name",
-    "object": "xwin"
-  },
-  "StartModule": {
-    "key": "x-ibm-windows.start_module",
-    "object": "xwin"
-  },
-  "StartFunction": {
-    "key": "x-ibm-windows.start_function",
-    "object": "xwin"
-  },
-  "Signed": {
-    "key": "x-ibm-windows.signed",
-    "object": "xwin"
-  },
+  "TargetImage": [
+    {
+      "key": "file.name",
+      "object": "file_target_image",
+      "transformer": "ToFileName"
+    },
+    {
+      "key": "directory.path",
+      "object": "directory_target_image",
+      "transformer": "ToDirectoryPath"
+    },
+    {
+      "key": "process.binary_ref",
+      "object": "target_process",
+      "references": "file_target_image"
+    },
+    {
+      "key": "file.parent_directory_ref",
+      "object": "file_target_image",
+      "references": "directory_target_image"
+    }
+  ],
   "Message": [
     {
       "key": "artifact.payload_bin",
@@ -846,10 +823,6 @@
   "mime_type_message": {
       "key": "artifact.mime_type",
       "object": "artifact"
-  },
-  "IMPHash": {
-    "key": "x-ibm-windows.imphash",
-    "object": "xwin"
   },
   "ServiceFileName": [
     {
@@ -877,5 +850,20 @@
   "hasoffense": {
     "key": "x-qradar.has_offense",
     "object": "x-qradar"
+  },
+  "MachineId": [
+    {
+      "key": "x-oca-asset.hostname",
+      "object": "host"
+    },
+    {
+      "key": "x-oca-event.host_ref",
+      "object": "event",
+      "references": "host"
+    }
+  ],
+  "ProcessGuid": {
+    "key": "process.x_unique_id",
+    "object": "process"
   }
 }

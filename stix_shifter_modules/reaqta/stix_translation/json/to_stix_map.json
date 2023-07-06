@@ -5,16 +5,13 @@
   },
   "eventId": {
     "key": "x-oca-event.code",
-    "object": "event",
-    "transformer": "ToInteger"
+    "object": "event"
   },
   "happenedAt": [
     {
-      "cybox": false,
       "key": "first_observed"
     },
     {
-      "cybox": false,
       "key": "last_observed"
     }
   ],
@@ -50,7 +47,7 @@
         "object": "asset"
       },
       "id": {
-        "key": "process.extensions.x-process-ext.process_uid",
+        "key": "process.x_unique_id",
         "object": "process"
       },
       "logonId": {
@@ -62,7 +59,7 @@
         "object": "process"
       },
       "parentId": {
-        "key": "process.extensions.x-process-ext.parent_process_uid",
+        "key": "process.x_unique_id",
         "object": "parent_process"
       },
       "pid": [
@@ -121,7 +118,7 @@
             "object": "certInfo"
           }
         },
-        "filename": [
+        "fsName": [
           {
             "key": "file.name",
             "object": "file"
@@ -137,9 +134,9 @@
             "references": "file"
           }
         ],
-        "fsName": {
-          "key": "file.extensions.x-reaqta-program.fsname",
-          "object": "file"
+        "filename": {
+          "key": "process.name",
+          "object": "process"
         },
         "md5": {
           "key": "file.hashes.MD5",
@@ -211,7 +208,7 @@
           "object": "asset"
         },
         "id": {
-          "key": "process.extensions.x-process-ext.process_uid",
+          "key": "process.x_unique_id",
           "object": "accessorProcess_process"
         },
         "logonId": {
@@ -223,7 +220,7 @@
           "object": "accessorProcess_process"
         },
         "parentId": {
-          "key": "process.extensions.x-process-ext.parent_process_uid",
+          "key": "process.x_unique_id",
           "object": "accessorProcess_parent_process"
         },
         "pid": [
@@ -282,7 +279,7 @@
               "object": "certInfo"
             }
           },
-          "filename": [
+          "fsName": [
             {
               "key": "file.name",
               "object": "accessorProcess_file"
@@ -298,8 +295,8 @@
               "references": "accessorProcess_file"
             }
           ],
-          "fsName": {
-            "key": "file.extensions.x-reaqta-program.fsname",
+          "filename": {
+            "key": "file.extensions.x-reaqta-program.filename",
             "object": "accessorProcess_file"
           },
           "md5": {
@@ -379,7 +376,7 @@
           "object": "asset"
         },
         "id": {
-          "key": "process.extensions.x-process-ext.process_uid",
+          "key": "process.x_unique_id",
           "object": "allocatorProc_process"
         },
         "logonId": {
@@ -391,7 +388,7 @@
           "object": "allocatorProc_process"
         },
         "parentId": {
-          "key": "process.extensions.x-process-ext.parent_process_uid",
+          "key": "process.x_unique_id",
           "object": "allocatorProc_parent_process"
         },
         "pid": [
@@ -450,7 +447,7 @@
               "object": "certInfo"
             }
           },
-          "filename": [
+          "fsName": [
             {
               "key": "file.name",
               "object": "allocatorProc_file"
@@ -466,8 +463,8 @@
               "references": "allocatorProc_file"
             }
           ],
-          "fsName": {
-            "key": "file.extensions.x-reaqta-program.fsname",
+          "filename": {
+            "key": "file.extensions.x-reaqta-program.filename",
             "object": "allocatorProc_file"
           },
           "md5": {
@@ -581,7 +578,7 @@
           "object": "asset"
         },
         "id": {
-          "key": "process.extensions.x-process-ext.process_uid",
+          "key": "process.x_unique_id",
           "object": "childProcess_process"
         },
         "logonId": {
@@ -593,7 +590,7 @@
           "object": "childProcess_process"
         },
         "parentId": {
-          "key": "process.extensions.x-process-ext.parent_process_uid",
+          "key": "process.x_unique_id",
           "object": "childProcess_parent_process"
         },
         "pid": [
@@ -652,7 +649,7 @@
               "object": "certInfo"
             }
           },
-          "filename": [
+          "fsName": [
             {
               "key": "file.name",
               "object": "childProcess_file"
@@ -668,8 +665,8 @@
               "references": "childProcess_file"
             }
           ],
-          "fsName": {
-            "key": "file.extensions.x-reaqta-program.fsname",
+          "filename": {
+            "key": "file.extensions.x-reaqta-program.filename",
             "object": "childProcess_file"
           },
           "md5": {
@@ -842,7 +839,7 @@
           "object": "asset"
         },
         "id": {
-          "key": "process.extensions.x-process-ext.process_uid",
+          "key": "process.x_unique_id",
           "object": "engineProcess_process"
         },
         "logonId": {
@@ -854,7 +851,7 @@
           "object": "engineProcess_process"
         },
         "parentId": {
-          "key": "process.extensions.x-process-ext.parent_process_uid",
+          "key": "process.x_unique_id",
           "object": "engineProcess_parent_process"
         },
         "pid": [
@@ -913,7 +910,7 @@
               "object": "certInfo"
             }
           },
-          "filename": [
+          "fsName": [
             {
               "key": "file.name",
               "object": "engineProcess_file"
@@ -929,8 +926,8 @@
               "references": "engineProcess_file"
             }
           ],
-          "fsName": {
-            "key": "file.extensions.x-reaqta-program.fsname",
+          "filename": {
+            "key": "file.extensions.x-reaqta-program.filename",
             "object": "engineProcess_file"
           },
           "md5": {
@@ -1010,7 +1007,7 @@
         {
           "key": "process.pid",
           "object": "process_etw",
-          "transformer": "ToInteger"
+          "transformer": "ConvertHexToInteger"
         },
         {
           "key": "x-oca-event.process_ref",
@@ -1048,15 +1045,14 @@
       },
       "etwEventId": {
         "key": "x-oca-event.code",
-        "object": "etw_event",
-        "transformer": "ToInteger"
+        "object": "etw_event"
       },
       "etwEventRecordId": {
         "key": "x-oca-event.extensions.x-reaqta-etw.etw_event_record_id",
         "object": "etw_event"
       },
       "etwEventVersion": {
-        "key": "x-oca-event.extensions.x-reaqta-etw.etw_event_record_id",
+        "key": "x-oca-event.extensions.x-reaqta-etw.etw_event_version",
         "object": "etw_event"
       },
       "etwFailureReason": {
@@ -1180,7 +1176,8 @@
       "etwProcessId": [
         {
           "key": "process.pid",
-          "object": "process_etw"
+          "object": "process_etw",
+          "transformer": "ConvertHexToInteger"
         },
         {
           "key": "x-oca-event.process_ref",
@@ -1367,7 +1364,7 @@
         "key": "file.extensions.x-reaqta-data.file_type",
         "object": "file_data"
       },
-      "filename": [
+      "fsName": [
         {
           "key": "file.name",
           "object": "file_data"
@@ -1612,7 +1609,7 @@
           "object": "asset"
         },
         "id": {
-          "key": "process.extensions.x-process-ext.process_uid",
+          "key": "process.x_unique_id",
           "object": "serviceProcess_process"
         },
         "logonId": {
@@ -1624,7 +1621,7 @@
           "object": "serviceProcess_process"
         },
         "parentId": {
-          "key": "process.extensions.x-process-ext.parent_process_uid",
+          "key": "process.x_unique_id",
           "object": "serviceProcess_parent_process"
         },
         "pid": [
@@ -1683,7 +1680,7 @@
               "object": "certInfo"
             }
           },
-          "filename": [
+          "fsName": [
             {
               "key": "file.name",
               "object": "serviceProcess_file"
@@ -1699,8 +1696,8 @@
               "references": "serviceProcess_file"
             }
           ],
-          "fsName": {
-            "key": "file.extensions.x-reaqta-program.fsname",
+          "filename": {
+            "key": "file.extensions.x-reaqta-program.filename",
             "object": "serviceProcess_file"
           },
           "md5": {
@@ -1786,10 +1783,17 @@
         "key": "x-reaqta-event.start_type",
         "object": "x-reaqta"
       },
-      "tactics": {
-        "key": "x-reaqta-event.tactics",
-        "object": "x-reaqta"
-      },
+      "tactics": [
+        {
+          "key": "x-ibm-finding.ttp_tagging_refs",
+          "object": "x-ibm-finding",
+          "references": ["x-ibm-ttp-tagging"]
+        },
+        {
+          "key": "x-ibm-ttp-tagging.extensions.'mitre-attack-ext'.tactic_name",
+          "object": "x-ibm-ttp-tagging"
+        }
+      ],
       "tags": {
         "key": "x-reaqta-event.tags",
         "object": "x-reaqta"
@@ -1800,7 +1804,7 @@
           "object": "asset"
         },
         "id": {
-          "key": "process.extensions.x-process-ext.process_uid",
+          "key": "process.x_unique_id",
           "object": "targetProcess_process"
         },
         "logonId": {
@@ -1812,7 +1816,7 @@
           "object": "targetProcess_process"
         },
         "parentId": {
-          "key": "process.extensions.x-process-ext.parent_process_uid",
+          "key": "process.x_unique_id",
           "object": "targetProcess_parent_process"
         },
         "pid": [
@@ -1871,7 +1875,7 @@
               "object": "certInfo"
             }
           },
-          "filename": [
+          "fsName": [
             {
               "key": "file.name",
               "object": "targetProcess_file"
@@ -1887,8 +1891,8 @@
               "references": "targetProcess_file"
             }
           ],
-          "fsName": {
-            "key": "file.extensions.x-reaqta-program.fsname",
+          "filename": {
+            "key": "file.extensions.x-reaqta-program.filename",
             "object": "targetProcess_file"
           },
           "md5": {
@@ -1970,10 +1974,21 @@
         "key": "x-reaqta-event.task_name",
         "object": "x-reaqta"
       },
-      "technique": {
-        "key": "x-reaqta-event.technique",
-        "object": "x-reaqta"
-      },
+      "technique": [
+        {
+          "key": "x-ibm-finding.ttp_tagging_refs",
+          "object": "x-ibm-finding",
+          "references": ["x-ibm-ttp-tagging"]
+        },
+        {
+          "key": "x-ibm-ttp-tagging.extensions.'mitre-attack-ext'.technique_name",
+          "object": "x-ibm-ttp-tagging"
+        },
+        {
+          "key": "x-ibm-ttp-tagging.extensions.name",
+          "object": "x-ibm-ttp-tagging"
+        }
+      ],
       "url": {
         "key": "url.value",
         "object": "url"

@@ -100,7 +100,7 @@
       "object": "process_file"
     },
     {
-      "key": "process.binary_ref",
+      "key": "process.image_ref",
       "object": "process",
       "references": "process_file"
     }
@@ -111,7 +111,7 @@
       "object": "process_file"
     },
     {
-      "key": "process.binary_ref",
+      "key": "process.image_ref",
       "object": "process",
       "references": "process_file"
     }
@@ -130,7 +130,7 @@
       "object": "process_file"
     },
     {
-      "key": "process.binary_ref",
+      "key": "process.image_ref",
       "object": "process",
       "references": "process_file"
     }
@@ -141,7 +141,7 @@
       "object": "process_file"
     },
     {
-      "key": "process.binary_ref",
+      "key": "process.image_ref",
       "object": "process",
       "references": "process_file"
     }
@@ -160,7 +160,7 @@
       "object": "process_file"
     },
     {
-      "key": "process.binary_ref",
+      "key": "process.image_ref",
       "object": "process",
       "references": "process_file"
     }
@@ -171,7 +171,7 @@
       "object": "process_file"
     },
     {
-      "key": "process.binary_ref",
+      "key": "process.image_ref",
       "object": "process",
       "references": "process_file"
     }
@@ -242,8 +242,7 @@
       "object": "file"
     },
     {
-      "key": "first_observed",
-      "cybox": false
+      "key": "first_observed"
     }
   ],
   "tgtFileModifiedAt": [
@@ -252,8 +251,7 @@
       "object": "file"
     },
     {
-      "key": "last_observed",
-      "cybox": false
+      "key": "last_observed"
     }
   ],
   "loginAccountSid": {
@@ -357,32 +355,29 @@
   },
   "srcProcStartTime": [
     {
-      "key": "process.created",
+      "key": "process.created_time",
       "object": "process"
     },
     {
-      "key": "first_observed",
-      "cybox": false
+      "key": "first_observed"
     }
   ],
   "tgtProcStartTime": [
     {
-      "key": "process.created",
+      "key": "process.created_time",
       "object": "process"
     },
     {
-      "key": "first_observed",
-      "cybox": false
+      "key": "first_observed"
     }
   ],
   "srcProcParentStartTime": [
     {
-      "key": "process.created",
+      "key": "process.created_time",
       "object": "parent_process"
     },
     {
-      "key": "first_observed",
-      "cybox": false
+      "key": "first_observed"
     },
     {
       "key": "process.parent_ref",
@@ -390,8 +385,7 @@
       "references": "parent_process"
     },
     {
-      "key": "first_observed",
-      "cybox": false
+      "key": "first_observed"
     }
   ],
   "srcProcPid": [
@@ -498,15 +492,15 @@
     "object": "process"
   },
   "srcProcUid": {
-    "key": "process.extensions.x-sentinelone-process-ext.process_unique_id",
+    "key": "process.x_unique_id",
     "object": "process"
   },
   "tgtProcUid": {
-    "key": "process.extensions.x-sentinelone-process-ext.process_unique_id",
+    "key": "process.x_unique_id",
     "object": "process"
   },
   "srcProcParentUid": {
-    "key": "process.extensions.x-sentinelone-process-ext.process_unique_id",
+    "key": "process.x_unique_id",
     "object": "process"
   },
   "srcProcSignedStatus": {

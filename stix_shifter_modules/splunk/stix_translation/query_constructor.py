@@ -13,6 +13,19 @@ from . import encoders
 from . import object_scopers
 
 
+def stix_strptime(date_string):
+    stix_date_format = "%Y-%m-%dT%H:%M:%S.%fz"
+    stix_date_format_secs = "%Y-%m-%dT%H:%M:%Sz"
+    try:
+        return datetime.strptime(date_string, stix_date_format)
+    except ValueError:
+        return datetime.strptime(date_string, stix_date_format_secs)
+
+
+def _needs_where_command(translated_query_str):
+    return bool(re.search(r'(like|match)\(', translated_query_str))
+
+
 class SplunkSearchTranslator:
     """ The core translator class. Instances should not be re-used """
 
@@ -43,47 +56,63 @@ class SplunkSearchTranslator:
             translated_query_str = translator.translate(expression.comparison_expression)
 
             if qualifier:
+                # timestamp pattern according to STIX spec
+                ts_pattern = r"t'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z'"
+
                 # start time pattern
-                st_pattern = r"(STARTt'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z')"
+                st_pattern = f"(START{ts_pattern})"
                 # stop time pattern
-                et_pattern = r"(STOPt'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z')"
+                et_pattern = f"(STOP{ts_pattern})"
 
                 # find start and stop time from qualifier string
                 st_arr = re.findall(st_pattern, qualifier)
                 et_arr = re.findall(et_pattern, qualifier)
 
-                stix_date_format = "%Y-%m-%dT%H:%M:%S.%fz"
                 splunk_date_format = "%m/%d/%Y:%H:%M:%S"
                 earliest, latest = "", ""
 
                 if st_arr:
                     # replace START and single quotes with empty char in date string
-                    earliest = re.sub(r"(STARTt|')", '', st_arr[0] if st_arr else "")
-                    earliest_obj = datetime.strptime(earliest, stix_date_format)
+                    earliest = re.sub(r"(STARTt|')", '', st_arr[0][0] if st_arr else "")
+                    earliest_obj = stix_strptime(earliest)
                     earliest_dt = earliest_obj.strftime(splunk_date_format)
 
                 if et_arr:
                     # replace STOP and single quotes with empty char in date string
-                    latest = re.sub(r"(STOPt|')", '', et_arr[0] if et_arr else "")
-                    latest_obj = datetime.strptime(latest, stix_date_format)
+                    latest = re.sub(r"(STOPt|')", '', et_arr[0][0] if et_arr else "")
+                    latest_obj = stix_strptime(latest)
                     latest_dt = latest_obj.strftime(splunk_date_format)
 
                 # prepare splunk SPL query
-                if earliest and latest:
-                    return '{query_string} earliest="{earliest}" latest="{latest}"'.format(query_string=translated_query_str,
-                                                                                           earliest=earliest_dt,
-                                                                                           latest=latest_dt)
-                elif earliest:
-                    return '{query_string} earliest="{earliest}"'.format(query_string=translated_query_str,
-                                                                         earliest=earliest_dt)
-                elif latest:
-                    return '{query_string} latest="{latest}"'.format(query_string=translated_query_str,
-                                                                     latest=latest_dt)
+                if _needs_where_command(translated_query_str):
+                    if earliest and latest:
+                        return 'earliest="{earliest}" latest="{latest}" | where {query_string}'.format(query_string=translated_query_str,
+                                                                                                       earliest=earliest_dt,
+                                                                                                       latest=latest_dt)
+                    elif earliest:
+                        return 'earliest="{earliest}" | where {query_string}'.format(query_string=translated_query_str,
+                                                                                     earliest=earliest_dt)
+                    elif latest:
+                        return 'latest="{latest}" | where {query_string}'.format(query_string=translated_query_str,
+                                                                                 latest=latest_dt)
+                    else:
+                        raise NotImplementedError("Qualifier type not implemented")
                 else:
-                    raise NotImplementedError("Qualifier type not implemented")
+                    if earliest and latest:
+                        return '{query_string} earliest="{earliest}" latest="{latest}"'.format(query_string=translated_query_str,
+                                                                                               earliest=earliest_dt,
+                                                                                               latest=latest_dt)
+                    elif earliest:
+                        return '{query_string} earliest="{earliest}"'.format(query_string=translated_query_str,
+                                                                             earliest=earliest_dt)
+                    elif latest:
+                        return '{query_string} latest="{latest}"'.format(query_string=translated_query_str,
+                                                                         latest=latest_dt)
+                    else:
+                        raise NotImplementedError("Qualifier type not implemented")
             else:
                 # Setting time_range value if START and STOP qualifiers are absent.
-                return '{query_string}'.format(query_string=translated_query_str)
+                return translated_query_str
 
         elif isinstance(expression, CombinedObservationExpression):
             combined_expr_format_string = self.comparator_lookup[str(expression.operator)]
@@ -128,12 +157,9 @@ class _ObservationExpressionTranslator:
             field_mapping = self.dmm.map_field(stix_object, stix_path)
             # This scopes the query to the object
             object_scoping = self.object_scoper(object_mapping)
-
+            
             if stix_object == "x-readable-payload" and stix_path == "value":
-                return "_raw=*{}*".format(expression.value)
-            # Special case where we want the risk finding
-            if stix_object == 'x-ibm-finding' and stix_path == 'name':
-                return f'index=_audit ss_name="{expression.value}" action=alert_fired'
+                return "_raw=*{}*".format(expression.value)            
             # Check if mapping has multiple fields
             if isinstance(field_mapping, list):
                 comparison_string = ""
@@ -161,9 +187,32 @@ class _ObservationExpressionTranslator:
                 self.translate(expression.expr2)
             )
 
+    def _field_severity(self, value):
+        """
+        check for severity and convert input value to
+        informational,low,medium,high,critical
+        param value
+        return value(str)
+        """
+        value = int(value)
+        if 1 <= value <= 20:
+            value = "informational"
+        elif 21 <= value <= 40:
+            value = "low"
+        elif 41 <= value <= 60:
+            value = "medium"
+        elif 61 <= value <= 80:
+            value = "high"
+        elif 81 <= value <= 100:
+            value = "critical"
+        else:
+            raise NotImplementedError('only 1-100 integer values are supported with severity field')
+        return value
+        
     def _build_comparison(self, expression, object_scoping, field_mapping):
         comparator = self._lookup_comparison_operator(self, expression.comparator)
-
+        if field_mapping == 'severity':
+            expression.value = self._field_severity(expression.value)
         if isinstance(comparator, str):
             if comparator == "encoders.like":
                 comparison = encoders.like(field_mapping, expression.value)
@@ -171,6 +220,8 @@ class _ObservationExpressionTranslator:
                 comparison = encoders.set(field_mapping, expression.value)
             elif comparator == "encoders.matches":
                 comparison = encoders.matches(field_mapping, expression.value)
+            elif comparator == "encoders.subset":
+                comparison = encoders.subset(field_mapping, expression.value)
             else:
                 comparison = "{} {} {}".format(
                     field_mapping,
@@ -222,10 +273,17 @@ def translate_pattern(pattern: Pattern, data_model_mapping, search_key, options)
             fields += field
 
     if index:
-        translated_query = f'index={index} {translated_query}'
+        indices = [i.strip(' ') for i in index.split(',')]
+        index_cmd = ' OR '.join([f'index="{i}"' for i in indices])
+        translated_query = f'{index_cmd} {translated_query}'
 
     if not has_earliest_latest:
-        translated_query += ' earliest="{earliest}" | head {result_limit}'.format(earliest=time_range, result_limit=result_limit)
+        if _needs_where_command(translated_query):
+            translated_query = 'earliest="{earliest}" | where {qry} | head {result_limit}'.format(qry=translated_query,
+                                                                                                  earliest=time_range,
+                                                                                                  result_limit=result_limit)
+        else:
+            translated_query += ' earliest="{earliest}" | head {result_limit}'.format(earliest=time_range, result_limit=result_limit)
     elif has_earliest_latest:
         translated_query += ' | head {result_limit}'.format(result_limit=result_limit)
 

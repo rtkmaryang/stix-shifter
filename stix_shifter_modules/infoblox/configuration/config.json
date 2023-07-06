@@ -1,7 +1,8 @@
 {
     "connection": {
         "type": {
-            "displayName": "Infoblox"
+            "displayName": "Infoblox",
+            "group": "infoblox"
         },
         "host": {
             "type": "text",
@@ -19,10 +20,6 @@
         },
         "cert": {
             "type": "password",
-            "optional": true
-        },
-        "sni": {
-            "type": "text",
             "optional": true
         },
         "selfSignedCert": {
